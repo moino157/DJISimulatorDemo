@@ -73,7 +73,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private FlightController mFlightController;
     protected TextView mConnectStatusTextView;
-    private Button mBtnTakeOff;
     private Button mBtnLand;
 
     private Timer parkourTimer;
@@ -263,8 +262,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onResume() {
         Log.e(TAG, "onResume");
         super.onResume();
-        updateTitleBar();
-        initFlightController();     //#################  Maybe Take Off ?  #####################//
+        showToast("onResume");
+        if(mFlightController == null && mSendVirtualStickDataTimer == null && parkourTimer == null) {
+            initFlightController();     //#################  Maybe Take Off ?  #####################//
+        }
     }
 
     @Override
@@ -276,6 +277,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     public void onStop() {
         Log.e(TAG, "onStop");
+        if(parkourTimer != null || mSendVirtualStickDataTimer != null){ clearGarbage();}
         super.onStop();
     }
 
@@ -287,6 +289,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         Log.e(TAG, "onDestroy");
+        showToast("onDestroy");
+        if(parkourTimer != null || mSendVirtualStickDataTimer != null){ clearGarbage();}
+        super.onDestroy();
+    }
+
+    private void clearGarbage(){
+        showToast("Clearing Garbage");
+        clearVSTimer();
+        clearParkourTimer();
+    }
+
+    private void clearVSTimer(){
         unregisterReceiver(mReceiver);
         if (null != mSendVirtualStickDataTimer) {
             mSendVirtualStickDataTask.cancel();     //Really necessary??
@@ -294,16 +308,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mSendVirtualStickDataTimer.cancel();    //Terminates this timer, discarding any currently scheduled tasks.
             mSendVirtualStickDataTimer.purge();     //Removes all cancelled tasks from this timer's task queue.
             mSendVirtualStickDataTimer = null;
+        }
+    }
+
+    private void clearParkourTimer(){
+        if(parkourTimer != null){
             parkourTimer.cancel();      //Terminates this timer, discarding any currently scheduled tasks.
             parkourTimer.purge();       //Removes all cancelled tasks from this timer's task queue.
             parkourTimer = null;
         }
-
-        super.onDestroy();
     }
 
     private void initFlightController() {
-
         Aircraft aircraft = DJISimulatorApplication.getAircraftInstance();
         if (aircraft == null || !aircraft.isConnected()) {
             mFlightController = null;
@@ -324,40 +340,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void initUI() {
-
-        mBtnTakeOff = (Button) findViewById(R.id.btn_take_off);
         mBtnLand = (Button) findViewById(R.id.btn_go);
         mConnectStatusTextView = (TextView) findViewById(R.id.ConnectStatusTextView);
-
-        mBtnTakeOff.setOnClickListener(this);
         mBtnLand.setOnClickListener(this);
-
     }
 
     @Override
     public void onClick(View v) {
 
         switch (v.getId()) {
-            case R.id.btn_take_off:
-                if (mFlightController != null){
-                    mFlightController.startTakeoff(
-                            new CommonCallbacks.CompletionCallback() {
-                                @Override
-                                public void onResult(DJIError djiError) {
-                                    if (djiError != null) {
-                                        showToast(djiError.getDescription());
-                                    } else {
-                                        showToast("Take off Success");
-                                    }
-                                }
-                            }
-                    );
-                }
-
-                break;
-
             case R.id.btn_go:
-                if (mFlightController != null){
+                if (mFlightController != null && parkourTimer == null){
                     showToast("Go!");
                     enableVirtualStick();
                     startParkour();
@@ -398,7 +391,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void startParkour(){
 
-        int t = 6000;  //time
+        int t = 8000;  //time
         int d = 3000;   //delay
 
         if (parkourTimer == null) {
@@ -415,7 +408,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             parkourTimer.schedule(new StopMovement(),t);
             t+=d;
             parkourTimer.schedule(new Forward(),t);   //Avance de 135cm vers l'avant
-            /* Forward */ t+=1520;
+            /* Forward */ t+=2720;
             parkourTimer.schedule(new StopMovement(),t);
             t+=d;
             parkourTimer.schedule(new Task1(),t);//Rotation autour du poto
@@ -423,7 +416,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             parkourTimer.schedule(new StopMovement(),t);    //à 1m de distance
             t+=d;
             parkourTimer.schedule(new Backward(),t);   //Recule de 636cm
-            /* Backward */ t+=9500;
+            /* Backward */ t+=11000;
             parkourTimer.schedule(new StopMovement(),t);
             t+=d;
             parkourTimer.schedule(new RotateCounterClockWise(),t);   //Rotation pour faire dos au poto #2
@@ -445,11 +438,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
             parkourTimer.schedule(new Task3(), t);  //Début du S
             /* Task 3 */ t+=4500;
             parkourTimer.schedule(new Forward(),t); //Milieu du S
-            /* Forward */ t+=3700;
+            /* Forward */ t+=3900;
             parkourTimer.schedule(new Task4(),t);   //Fin du S
             /* Task 4 */ t+=2025;
             parkourTimer.schedule(new Forward(), t);  //Se place pour poto #3
-            /* Forward */ t+=3500;
+            /* Forward */ t+=8400;
             parkourTimer.schedule(new StopMovement(),t);
             t+=d;
             //######################### Fin du S ################################################
@@ -469,7 +462,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             parkourTimer.schedule(new StopMovement(),t);
             t+=d;
             parkourTimer.schedule(new Forward(),t);//Rotation autour du poto
-            /* Forward */ t+=14000;
+            /* Forward */ t+=15500;
             parkourTimer.schedule(new StopMovement(),t);    //à 1m de distance
             t+=d;
             parkourTimer.schedule(new RotateCounterClockWise(),t);
@@ -495,7 +488,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 mFlightController.sendVirtualStickFlightControlData(new FlightControlData((float)roll,
                                 (float)pitch,
                                 (float)yaw,
-                                1),
+                                (float)1.5),
                         new CommonCallbacks.CompletionCallback() {
                             @Override
                             public void onResult(DJIError djiError) {
@@ -670,7 +663,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private class EndParkour extends TimerTask {
         @Override
         public void run() {
-            parkourTimer = null;
             roll = 0;
             pitch = 0;
             yaw = 0;
@@ -681,6 +673,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                 }
             });
+
+            clearGarbage();
         }
     }
 
