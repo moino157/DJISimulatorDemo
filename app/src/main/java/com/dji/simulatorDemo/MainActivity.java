@@ -289,20 +289,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
         Log.e(TAG, "onDestroy");
         unregisterReceiver(mReceiver);
         if (null != mSendVirtualStickDataTimer) {
-            mSendVirtualStickDataTask.cancel();
+            mSendVirtualStickDataTask.cancel();     //Really necessary??
             mSendVirtualStickDataTask = null;
-            mSendVirtualStickDataTimer.cancel();
-            mSendVirtualStickDataTimer.purge();
+            mSendVirtualStickDataTimer.cancel();    //Terminates this timer, discarding any currently scheduled tasks.
+            mSendVirtualStickDataTimer.purge();     //Removes all cancelled tasks from this timer's task queue.
             mSendVirtualStickDataTimer = null;
-        }
-
-        if (null != mSendVirtualStickDataTimer) {
-            mSendVirtualStickDataTask.cancel();
-            mSendVirtualStickDataTask = null;
-            parkourTimer.cancel();
-            parkourTimer.purge();
+            parkourTimer.cancel();      //Terminates this timer, discarding any currently scheduled tasks.
+            parkourTimer.purge();       //Removes all cancelled tasks from this timer's task queue.
             parkourTimer = null;
         }
+
         super.onDestroy();
     }
 
