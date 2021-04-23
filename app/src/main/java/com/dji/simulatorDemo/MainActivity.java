@@ -73,6 +73,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private FlightController mFlightController;
     protected TextView mConnectStatusTextView;
+    private Button mBtnTakeOff;
     private Button mBtnLand;
 
     private Timer parkourTimer;
@@ -277,12 +278,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     public void onStop() {
         Log.e(TAG, "onStop");
-        if(parkourTimer != null || mSendVirtualStickDataTimer != null){ clearGarbage();}
         super.onStop();
     }
 
     public void onReturn(View view){
         Log.e(TAG, "onReturn");
+        showToast("onReturn");
         this.finish();
     }
 
@@ -296,11 +297,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private void clearGarbage(){
         showToast("Clearing Garbage");
-        clearVSTimer();
-        clearParkourTimer();
-    }
-
-    private void clearVSTimer(){
         unregisterReceiver(mReceiver);
         if (null != mSendVirtualStickDataTimer) {
             mSendVirtualStickDataTask.cancel();     //Really necessary??
@@ -308,11 +304,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mSendVirtualStickDataTimer.cancel();    //Terminates this timer, discarding any currently scheduled tasks.
             mSendVirtualStickDataTimer.purge();     //Removes all cancelled tasks from this timer's task queue.
             mSendVirtualStickDataTimer = null;
-        }
-    }
-
-    private void clearParkourTimer(){
-        if(parkourTimer != null){
             parkourTimer.cancel();      //Terminates this timer, discarding any currently scheduled tasks.
             parkourTimer.purge();       //Removes all cancelled tasks from this timer's task queue.
             parkourTimer = null;
@@ -320,6 +311,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void initFlightController() {
+
         Aircraft aircraft = DJISimulatorApplication.getAircraftInstance();
         if (aircraft == null || !aircraft.isConnected()) {
             mFlightController = null;
@@ -340,17 +332,40 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void initUI() {
+
+        mBtnTakeOff = (Button) findViewById(R.id.btn_take_off);
         mBtnLand = (Button) findViewById(R.id.btn_go);
         mConnectStatusTextView = (TextView) findViewById(R.id.ConnectStatusTextView);
+
+        mBtnTakeOff.setOnClickListener(this);
         mBtnLand.setOnClickListener(this);
+
     }
 
     @Override
     public void onClick(View v) {
 
         switch (v.getId()) {
+            case R.id.btn_take_off:
+                if (mFlightController != null){
+                    mFlightController.startTakeoff(
+                            new CommonCallbacks.CompletionCallback() {
+                                @Override
+                                public void onResult(DJIError djiError) {
+                                    if (djiError != null) {
+                                        showToast(djiError.getDescription());
+                                    } else {
+                                        showToast("Take off Success");
+                                    }
+                                }
+                            }
+                    );
+                }
+
+                break;
+
             case R.id.btn_go:
-                if (mFlightController != null && parkourTimer == null){
+                if (mFlightController != null){
                     showToast("Go!");
                     enableVirtualStick();
                     startParkour();

@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AndroidStudioProjects-DJISimulatorDemo.iml" filepath="$PROJECT_DIR$/AndroidStudioProjects-DJISimulatorDemo.iml" group="DJISimulatorDemo" />
       <module fileurl="file://$PROJECT_DIR$/DJISimulatorDemo.iml" filepath="$PROJECT_DIR$/DJISimulatorDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/DJISimulatorDemo-app.iml" filepath="$PROJECT_DIR$/app/DJISimulatorDemo-app.iml" group="DJISimulatorDemo/app" />
+      <module fileurl="file://$PROJECT_DIR$/Desktop-DJISimulatorDemo.iml" filepath="$PROJECT_DIR$/Desktop-DJISimulatorDemo.iml" group="DJISimulatorDemo" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
