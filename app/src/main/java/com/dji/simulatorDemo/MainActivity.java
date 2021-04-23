@@ -73,7 +73,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private FlightController mFlightController;
     protected TextView mConnectStatusTextView;
-    private Button mBtnTakeOff;
     private Button mBtnLand;
 
     private Timer parkourTimer;
@@ -154,7 +153,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
                                 DJILog.e("App registration", DJISDKError.REGISTRATION_SUCCESS.getDescription());
                                 DJISDKManager.getInstance().startConnectionToProduct();
-                                //loginAccount();
                                 showToast("Register Success");
                             } else {
                                 showToast( "Register sdk fails, check network is available");
@@ -278,6 +276,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     public void onStop() {
         Log.e(TAG, "onStop");
+        clearGarbage();
         super.onStop();
     }
 
@@ -304,6 +303,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mSendVirtualStickDataTimer.cancel();    //Terminates this timer, discarding any currently scheduled tasks.
             mSendVirtualStickDataTimer.purge();     //Removes all cancelled tasks from this timer's task queue.
             mSendVirtualStickDataTimer = null;
+        }
+
+        if(null != parkourTimer){
             parkourTimer.cancel();      //Terminates this timer, discarding any currently scheduled tasks.
             parkourTimer.purge();       //Removes all cancelled tasks from this timer's task queue.
             parkourTimer = null;
@@ -332,45 +334,29 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void initUI() {
-
-        mBtnTakeOff = (Button) findViewById(R.id.btn_take_off);
         mBtnLand = (Button) findViewById(R.id.btn_go);
         mConnectStatusTextView = (TextView) findViewById(R.id.ConnectStatusTextView);
-
-        mBtnTakeOff.setOnClickListener(this);
         mBtnLand.setOnClickListener(this);
-
     }
 
     @Override
     public void onClick(View v) {
 
         switch (v.getId()) {
-            case R.id.btn_take_off:
-                if (mFlightController != null){
-                    mFlightController.startTakeoff(
-                            new CommonCallbacks.CompletionCallback() {
-                                @Override
-                                public void onResult(DJIError djiError) {
-                                    if (djiError != null) {
-                                        showToast(djiError.getDescription());
-                                    } else {
-                                        showToast("Take off Success");
-                                    }
-                                }
-                            }
-                    );
-                }
-
-                break;
-
             case R.id.btn_go:
                 if (mFlightController != null){
-                    showToast("Go!");
                     enableVirtualStick();
                     startParkour();
                 }else{
-                    showToast("mFlightController == null");
+                    try{
+                        initFlightController();
+                        if(mFlightController != null){
+                            enableVirtualStick();
+                            startParkour();
+                        }
+                    }catch (Exception e) {
+                        System.out.println("Oops! Une erreur s'est produite. Essayez de redémarrer l'application.");
+                    }
                 }
 
                 break;
@@ -388,7 +374,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
         if (mFlightController != null){
-
             mFlightController.setVirtualStickModeEnabled(true, new CommonCallbacks.CompletionCallback() {
                 @Override
                 public void onResult(DJIError djiError) {
@@ -400,7 +385,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     }
                 }
             });
-
         }
     }
 

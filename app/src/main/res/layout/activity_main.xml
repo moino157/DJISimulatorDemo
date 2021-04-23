@@ -35,26 +35,13 @@
     </RelativeLayout>
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Take Off"
-        style="@style/common_button"
-        android:id="@+id/btn_take_off"
-        android:layout_below="@+id/main_title_rl"
-        android:layout_marginTop="150dp"
-        android:visibility="invisible"
-        android:enabled="false"
-        android:layout_marginLeft="230dp"/>
-
-    <Button
         android:id="@+id/btn_go"
         style="@style/common_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/btn_take_off"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="0dp"
-        android:layout_toEndOf="@+id/btn_take_off"
+        android:layout_below="@+id/main_title_rl"
+        android:layout_marginLeft="320dp"
+        android:layout_marginTop="150dp"
         android:text="Go" />
 
 
